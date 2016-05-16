@@ -18,10 +18,9 @@ class line_buffer:
         self.arr = numpy.asarray(self.img)
         self.line = 0
         
-    def get_line( self ):
+    def get_line( self, line ):
         # return 1dim array
-        self.line += 1
-        return self.arr[self.line-1]
+        return self.arr[line]
     
     def new_frame(self):
         self.line =0
@@ -45,9 +44,11 @@ class image_creator:
 
 
 class resize_config:
-    def __init__(self, xres = 1, yres = 1):
-        self.xresize = xres;
-        self.yresize = yres;
+    def __init__(self):
+        self.xtarget = 800;
+        self.ytarget = 300;
+        self.xsize = 512
+        self.ysize = 200
         
 
 class resize:
@@ -60,20 +61,46 @@ class resize:
     def change_config(self, cfg):
         self.config = cfg;
         
-    def go( self ):
-        while 1:
-            try:
-                self.putline( self.getline() )
-            except:
-                print "Done"
-                return
+    def bilinear( self ):
+        
+        low_data = []
+        high_data = []
+        new_data = numpy.zeros(self.config.xsize)
+
+        
+        for l in xrange(self.config.ytarget-1):
+            ideal=float(l*self.config.ysize)/float(self.config.ytarget)
             
+            low = ideal - numpy.floor(ideal)
+            low = 1 if low == 0 else low
+
+            high = numpy.ceil(ideal) - ideal
+            print ideal, low, high
+            low_data=self.getline( numpy.floor(ideal) )
+            high_data=self.getline( numpy.ceil(ideal) )
+
+            for i in xrange( self.config.xsize ):
+                new_data[i] = low*low_data[i] + high*high_data[i]
+
+            self.putline( new_data )
+            
+        print"done"
+        return
+    
+    def repeat( self ):
+        for l in xrange(self.config.ytarget):
+            
+            self.putline( self.getline(int(l*self.config.ysize/self.config.ytarget)))
+            
+        print"done"
+        return
         
         
 lb = line_buffer("lena512.bmp")
 ic = image_creator()
-cfg = resize_config
+cfg = resize_config()
 
 rsz = resize(lb.get_line, ic.add_line, cfg )
-rsz.go()
+rsz.repeat()
+rsz.bilinear()
 ic.show()
