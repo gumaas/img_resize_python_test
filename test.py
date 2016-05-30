@@ -82,7 +82,7 @@ class resize:
         new_data = numpy.zeros(self.config.xsize)
 
         
-        for l in xrange(self.config.ytarget-1):
+        for l in xrange(self.config.ytarget):
             ideal=float(l*(self.config.ysize-1)/float(self.config.ytarget) )
             
             high = ideal - numpy.floor(ideal)
